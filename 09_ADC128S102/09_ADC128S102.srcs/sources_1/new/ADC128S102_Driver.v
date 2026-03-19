@@ -92,49 +92,66 @@ module ADC128S102_Driver(
     
     
     // 线性序列机
+    reg [11:0] data_r;
     always@(posedge clk or negedge reset_n)begin
         if(!reset_n)begin
             CS_N <= 1;
             SCLK <= 1;
             DIN <= 0;
+            data_r <= 0;
         end
-        else if(conv_go)begin
+        else if(conv_en)begin
              case(LSM_cnt)
                 0:begin CS_N <= 0; end
                 1:begin SCLK <= 0; DIN <= 0; end
                 2:begin SCLK <= 1; end
                 3:begin SCLK <= 0; end
                 4:begin SCLK <= 1; end
-                5:begin SCLK <= 0; DIN <= Addr[2]; end
+                5:begin SCLK <= 0; DIN <= r_Addr[2]; end
                 6:begin SCLK <= 1; end
-                7:begin SCLK <= 0; DIN <= Addr[1]; end
+                7:begin SCLK <= 0; DIN <= r_Addr[1]; end
                 8:begin SCLK <= 1; end
-                9:begin SCLK <= 0; DIN <= Addr[0];  end
-                10:begin SCLK <= 1; data[11] <= DOUT; end  // 时序图上画的好像是上升沿读取一样，但是我特意查了一下，确实是下降沿读取，md，艹
+                9:begin SCLK <= 0; DIN <= r_Addr[0];  end
+                10:begin SCLK <= 1; data_r[11] <= DOUT; end  // 时序图上画的好像是上升沿读取一样，但是我特意查了一下，确实是下降沿读取，md，艹
                 11:begin SCLK <= 0; end
-                12:begin SCLK <= 1; data[10] <= DOUT; end
+                12:begin SCLK <= 1; data_r[10] <= DOUT; end
                 13:begin SCLK <= 0; end
-                14:begin SCLK <= 1; data[9] <= DOUT; end
+                14:begin SCLK <= 1; data_r[9] <= DOUT; end
                 15:begin SCLK <= 0; end
-                16:begin SCLK <= 1; data[8] <= DOUT; end
+                16:begin SCLK <= 1; data_r[8] <= DOUT; end
                 17:begin SCLK <= 0; end
-                18:begin SCLK <= 1; data[7] <= DOUT; end
+                18:begin SCLK <= 1; data_r[7] <= DOUT; end
                 19:begin SCLK <= 0; end
-                20:begin SCLK <= 1; data[6] <= DOUT; end
+                20:begin SCLK <= 1; data_r[6] <= DOUT; end
                 21:begin SCLK <= 0; end
-                22:begin SCLK <= 1; data[5] <= DOUT; end
+                22:begin SCLK <= 1; data_r[5] <= DOUT; end
                 23:begin SCLK <= 0; end
-                24:begin SCLK <= 1; data[4] <= DOUT; end
+                24:begin SCLK <= 1; data_r[4] <= DOUT; end
                 25:begin SCLK <= 0; end
-                26:begin SCLK <= 1; data[3] <= DOUT; end
+                26:begin SCLK <= 1; data_r[3] <= DOUT; end
                 27:begin SCLK <= 0; end
-                28:begin SCLK <= 1; data[2] <= DOUT; end
+                28:begin SCLK <= 1; data_r[2] <= DOUT; end
                 29:begin SCLK <= 0; end
-                30:begin SCLK <= 1; data[1] <= DOUT; end
+                30:begin SCLK <= 1; data_r[1] <= DOUT; end
                 31:begin SCLK <= 0; end
-                32:begin SCLK <= 1; data[0] <= DOUT; end
+                32:begin SCLK <= 1; data_r[0] <= DOUT; end
                 33:begin CS_N <= 1; end
              endcase
+        end
+    end
+    
+    always@(posedge clk or negedge reset_n)begin
+        if(!reset_n)begin
+            data <= 0;
+            conv_done <= 0;
+        end
+        else if((LSM_cnt == 33)&&(cnt_div_12_5MHz == MCNT_12_5MHz))begin
+            data <= data_r;
+            conv_done <= 1;
+        end
+        else begin
+            data <= data;
+            conv_done <= 0;
         end
     end
     
